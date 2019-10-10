@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import torch
 
+def isnone(x):
+    return type(x) == type(None)
 
 def softplus(x):
     return torch.log(1+torch.exp(x))
