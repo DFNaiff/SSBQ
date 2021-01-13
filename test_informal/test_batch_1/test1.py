@@ -8,12 +8,13 @@ import torch
 import matplotlib.pyplot as plt
 
 from ssgp import SSGP
+from ssbq import SSBQ
 from base_samplers import RBFSampler,MaternSampler
 
 X = torch.randn(10000).reshape(-1,1)
 Y = torch.sin(0.5*math.pi*X) + 0.001*torch.randn_like(X)
 
-ssgp = SSGP(MaternSampler(1.5))
+ssgp = SSBQ(MaternSampler(1.5))
 ssgp.set_training_data(X,Y)
 ssgp.set_params(1.0*torch.ones(1),
                 1.0*torch.ones(1),
@@ -39,3 +40,4 @@ plt.plot(X_new.numpy(),Y_new_mean.numpy(),'b-')
 plt.fill_between(X_new.flatten().numpy(),
                  lower.flatten().numpy(),
                  upper.flatten().numpy(),alpha=0.8)
+ssgp.integral_mvn(torch.zeros(1,1),torch.ones(1,1))

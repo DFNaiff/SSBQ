@@ -11,32 +11,42 @@ from ssgp import SSGP
 from ssbq import SSBQ
 from base_samplers import RBFSampler,MaternSampler
 
-X = torch.randn(10000,10)
+dim = 3
+X = torch.randn(10000,dim)
 Y = torch.sin(X.sum(dim=-1,keepdim=True)) + 0.01*torch.randn(X.shape[0],1)
-X_test = torch.randn(10,10)
+X_test = torch.randn(30,dim)
 Y_test = torch.sin(X_test.sum(dim=-1,keepdim=True)) + 0.01*torch.randn(X_test.shape[0],1)
 
-ssgp = SSBQ(RBFSampler())
+ssgp = SSBQ(MaternSampler(2.5))
 ssgp.set_training_data(X,Y)
 ssgp.set_params(1.0*torch.ones(1),
                 1.0*torch.ones(1),
                 0.001*torch.ones(1),
                 25)
-optimizer = torch.optim.Adam(ssgp.parameters(),lr=1e-3)
+optimizer = torch.optim.Adam(ssgp.parameters(),lr=1e-4)
 
 def loss_fn(Y,Ypred):
     return ((Y-Ypred)**2).mean()
     
-for i in range(10000):
+#%%
+Y_pred = ssgp.prediction(X_test)[0]
+print(torch.cat(
+    [Y_test,Y_pred,torch.abs(Y_pred-Y_test)/torch.abs(Y_pred)]
+    ,dim=-1).detach())
+
+for i in range(1000):
     optimizer.zero_grad()
     loss = -ssgp.marginal_log_likelihood()
     loss.backward()
     optimizer.step()
-    if i%100 == 0:
+    if i%1000 == 0:
         print(i,loss.item())
-        print(loss_fn(Y_test,ssgp.prediction(X_test)[0]))
+        Y_pred = ssgp.prediction(X_test)[0]
+        print(loss_fn(Y_test,Y_pred))
         print('--')
-
+print(torch.cat(
+        [Y_test,Y_pred,torch.abs(Y_pred-Y_test)/torch.abs(Y_pred)]
+        ,dim=-1).detach())
 #X_new = torch.linspace(-500,500,101).reshape(-1,1)
 #with torch.no_grad():
 #    Y_new_mean,Y_new_var = ssgp.prediction(X_new)

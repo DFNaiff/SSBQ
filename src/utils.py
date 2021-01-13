@@ -12,11 +12,18 @@ def inv_softplus(x):
 
 def jitterize(K,j,proportional=False):
     if proportional:
+        if len(K.shape) > 2:
+            raise NotImplementedError
         jitter_factor = torch.mean(torch.diag(K)).item()*j
     else:
         jitter_factor = j
-    K[range(len(K)),range(len(K))] += jitter_factor
-    return K    
+    if len(K.shape) > 2:
+        if (len(jitter_factor.shape) > 0 and \
+            len(jitter_factor.shape) < len(K.shape) - 1):
+            jitter_factor = jitter_factor.unsqueeze(-1)
+    inds = range(K.shape[-1])
+    K[...,inds,inds] += jitter_factor
+    return K 
 
 def meshgrid3d(X,Y):
     """

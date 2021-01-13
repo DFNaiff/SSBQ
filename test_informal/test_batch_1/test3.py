@@ -10,9 +10,10 @@ import matplotlib.pyplot as plt
 from ssgp import SSGP
 from base_samplers import RBFSampler,MaternSampler
 
+torch.manual_seed(100)
 def sinc_t(x):
     return torch.sin(math.pi*x)/(math.pi*x)
-X = torch.rand(100,1)*6-1
+X = torch.rand(20,1)*6-1
 Y = sinc_t(X) + 0.05*torch.randn_like(X)
 
 ssgp = SSGP(RBFSampler())
